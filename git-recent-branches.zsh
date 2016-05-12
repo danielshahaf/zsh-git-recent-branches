@@ -24,7 +24,7 @@ _git-rb() {
           branches+=$branch
           descriptions+="${branch}:${description/:/\:/}"
           (( current++ ))
-          if [[ $current == $branch_limit ]]; then
+          if (( $current == $branch_limit )); then
             break
           fi
         fi
