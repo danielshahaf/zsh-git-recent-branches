@@ -1,3 +1,8 @@
+zstyle -T 'git:branch:recent' 'limit'
+if [[ "$?" != "0" ]]; then
+  zstyle 'git:branch:recent' 'limit' '100'
+fi
+
 function __git_recent_branches()
 {
     local current_branch branch_limit
@@ -5,20 +10,34 @@ function __git_recent_branches()
     current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
     branches=($(git reflog 2>/dev/null | \grep -Eio "moving from ([^[:space:]]+)" | \awk '{ print $3 }' | \grep -Eiv "[0-9a-f]{40}" | \tr '\n' ' '))
     branches_without_current=("${(@)branches:#$current_branch}")
-    unique_branches=("${(u)branches_without_current}")
-    branch_limit=11
+    unique_branches=(${(u)branches_without_current})
     echo $unique_branches
-    #[1,${branch_limit:-10}]
 }
 
 _git-rb() {
-    local -a branches desc
-    local branch
-    branches=
-    for branch in ($(__git_recent_branches))
+    local -a branches descriptions
+    local branch description
+    local -i current
+    local branch_limit
+
+    zstyle -g branch_limit 'git:branch:recent' 'limit'
+    current=0
+    for branch in $(__git_recent_branches)
     do
-        desc+=("${branch}:$(git log -1 --pretty=%s ${branch} -- 2>/dev/null)")
+        description=$(git log -1 --pretty=%s ${branch} -- 2>/dev/null)
+        if [[ -n "$description" ]]; then
+          branches+=$branch
+          descriptions+="${branch}:${description/:/\:/}"
+          (( current++ ))
+          if [[ $current == $branch_limit ]]; then
+            break
+          fi
+        fi
     done
-    _describe "recent branches" desc -V recent
+
+    _describe "recent branches" descriptions -V branches
 }
 compdef _git-rb git-rb
+
+# If you define an alias in ~/.gitconfig for    rb = checkout  then you can test
+# using  git rb BRANCH<enter> and it should checkout the appropriate branch
