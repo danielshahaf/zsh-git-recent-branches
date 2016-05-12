@@ -30,7 +30,7 @@ _git-rb() {
         fi
     done
 
-    _describe -V "recent branches" descriptions branches
+    _describe -V -t recent-branches "recent branches" descriptions branches
 }
 compdef _git-rb git-rb
 
