@@ -15,7 +15,7 @@ _git-rb() {
     local -i current
     integer branch_limit
 
-    zstyle -s 'git:branch:recent' 'limit' branch_limit || branch_limit=100
+    zstyle -s ":completion:${curcontext}:recent-branches" 'limit' branch_limit || branch_limit=100
     current=0
     for branch in $(__git_recent_branches)
     do
