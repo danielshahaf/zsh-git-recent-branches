@@ -1,17 +1,31 @@
 function __git_recent_branches()
 {
-    # TODO: Suggest to use 'git reflog -z --pretty=%gs%x00%s' to get just the interesting parts
-    # TODO: Suggest to filter for "checkout:" leader to avoid false positive matches (when %s contains "moving from")
-    local current_branch branch_limit
-    local -a branches branches_without_current unique_branches
-    current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-    # TODO: Why backslashes?  aliaes aren't evaluated by 'autoload -U'
-    # TODO: «grep -o» is in freebsd/linux but isn't in POSIX; okay here but might not be for zsh upstream
-    branches=($(git reflog 2>/dev/null | \grep -Eio "moving from ([^[:space:]]+)" | \awk '{ print $3 }' | \grep -Eiv "[0-9a-f]{40}" | \tr '\n' ' '))
-    branches_without_current=("${(@)branches:#$current_branch}")
-    unique_branches=(${(u)branches_without_current})
-    # TODO: Is $unique_branches both echo-safe and $()-safe?  If not: most robust would be to use $reply return array
-    echo $unique_branches
+    local -a reflog
+    local reflog_subject commit_subject
+    local new_head
+    local -A seen
+    reply=()
+
+    reflog=(${(ps:\0:)"$(_call_program reflog git reflog -z --pretty='%gs%x00%s' 2>/dev/null)"})
+    for reflog_subject commit_subject in $reflog; do
+      if [[ $reflog_subject != "checkout: moving from "* ]]; then
+        continue
+      fi
+
+      new_head=${${=reflog_subject}[4]}
+
+      if (( ${+seen[$new_head]} )); then
+        continue
+      fi
+      seen[$new_head]="" # value is ignored
+
+      if [[ $new_head =~ '^[0-9a-f]{40}$' ]]; then
+        continue
+      fi
+
+      # All checks passed.  Add it.
+      reply+=( "$new_head"$'\0'"$commit_subject" )
+    done
 }
 
 _git-rb() {
@@ -22,9 +36,11 @@ _git-rb() {
 
     zstyle -s ":completion:${curcontext}:recent-branches" 'limit' branch_limit || branch_limit=100
     current=0
-    for branch in $(__git_recent_branches)
+    __git_recent_branches \
+    ; for branch in $reply
     do
-        description=$(git log -1 --pretty=%s ${branch} -- 2>/dev/null)
+        description=${branch#*$'\0'}
+        branch=${branch%$'\0'*}
         # TODO: why this check?  Is it belt-and-suspenders?  I not, can $description be empty?
         if [[ -n "$description" ]]; then
           branches+=$branch
