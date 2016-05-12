@@ -1,8 +1,3 @@
-zstyle -T 'git:branch:recent' 'limit'
-if [[ "$?" != "0" ]]; then
-  zstyle 'git:branch:recent' 'limit' '100'
-fi
-
 function __git_recent_branches()
 {
     local current_branch branch_limit
@@ -18,9 +13,9 @@ _git-rb() {
     local -a branches descriptions
     local branch description
     local -i current
-    local branch_limit
+    integer branch_limit
 
-    zstyle -g branch_limit 'git:branch:recent' 'limit'
+    zstyle -s 'git:branch:recent' 'limit' branch_limit || branch_limit=100
     current=0
     for branch in $(__git_recent_branches)
     do
