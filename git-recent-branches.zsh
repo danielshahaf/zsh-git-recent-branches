@@ -22,7 +22,7 @@ _git-rb() {
         description=$(git log -1 --pretty=%s ${branch} -- 2>/dev/null)
         if [[ -n "$description" ]]; then
           branches+=$branch
-          descriptions+="${branch}:${description/:/\:/}"
+          descriptions+="${branch}:${description/:/\:}"
           (( current++ ))
           if (( $current == $branch_limit )); then
             break
