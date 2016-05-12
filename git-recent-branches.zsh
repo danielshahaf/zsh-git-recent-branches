@@ -1,6 +1,6 @@
 function __git_recent_branches()
 {
-    # TODO: Suggest to use 'git reflog --pretty=%gs%z%s' to get just the interesting parts
+    # TODO: Suggest to use 'git reflog -z --pretty=%gs%z%s' to get just the interesting parts
     # TODO: Suggest to filter for "checkout:" leader to avoid false positive matches (when %s contains "moving from")
     local current_branch branch_limit
     local -a branches branches_without_current unique_branches
