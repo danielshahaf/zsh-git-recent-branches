@@ -29,12 +29,8 @@ function __git_recent_branches__names()
 __git_recent_branches2() {
     local -a branches descriptions
     local branch description
-    local -i current
-    integer branch_limit
     local -a reply
 
-    zstyle -s ":completion:${curcontext}:recent-branches" 'limit' branch_limit || branch_limit=100
-    current=0
     __git_recent_branches__names \
     ; for branch in $reply
     do
@@ -47,10 +43,6 @@ __git_recent_branches2() {
         if [[ -n "$description" ]]; then
           branches+=$branch
           descriptions+="${branch}:${description/:/\:}"
-          (( current++ ))
-          if (( $current == $branch_limit )); then
-            break
-          fi
         fi
     done
 
