@@ -34,10 +34,12 @@ __git_recent_branches2() {
     __git_recent_branches__names \
     ; for branch in $reply
     do
-        # ### We'd want to convert all $reply to $descriptions in one shot, with this:
+        # ### We'd want to convert all $reply to $descriptions in one shot,
+        # ### with this:
         # ###     array=("${(ps:\0:)"$(_call_program descriptions git --no-pager log --no-walk=unsorted -z --pretty=%s ${(q)reply} --)"}")
-        # ### , but git croaks if any of the positional arguments is a ref name that has been deleted.
-        # ### Hence, we resort to fetching the descriptions one-by-one.  Let's hope the user is well-stocked on cutlery.
+        # ### , but git croaks if any of the positional arguments is a ref name
+        # ### that has been deleted.  Hence, we resort to fetching the descriptions
+        # ### one-by-one.  Let's hope the user is well-stocked on cutlery.
         description="$(_call_program description git --no-pager log --no-walk=unsorted --pretty=%s ${(q)branch} --)"
         # If the ref has been deleted, $description would be empty.
         if [[ -n "$description" ]]; then
