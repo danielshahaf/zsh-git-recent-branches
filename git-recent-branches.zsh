@@ -8,12 +8,8 @@ function __git_recent_branches__names()
     local -A seen
     reply=()
 
-    reflog=(${(ps:\0:)"$(_call_program reflog git reflog -z --pretty='%gs' 2>/dev/null)"})
+    reflog=(${(ps:\0:)"$(_call_program reflog git reflog -z --grep-reflog='\^checkout:\ moving\ from\ ' --pretty='%gs' 2>/dev/null)"})
     for reflog_subject in $reflog; do
-      if [[ $reflog_subject != "checkout: moving from "* ]]; then
-        continue
-      fi
-
       new_head=${${=reflog_subject}[4]}
 
       if (( ${+seen[$new_head]} )); then
