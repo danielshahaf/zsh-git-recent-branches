@@ -1,13 +1,13 @@
 function __git_recent_branches()
 {
     local -a reflog
-    local reflog_subject commit_subject
+    local reflog_subject
     local new_head
     local -A seen
     reply=()
 
-    reflog=(${(ps:\0:)"$(_call_program reflog git reflog -z --pretty='%gs%x00%s' 2>/dev/null)"})
-    for reflog_subject commit_subject in $reflog; do
+    reflog=(${(ps:\0:)"$(_call_program reflog git reflog -z --pretty='%gs' 2>/dev/null)"})
+    for reflog_subject in $reflog; do
       if [[ $reflog_subject != "checkout: moving from "* ]]; then
         continue
       fi
@@ -24,7 +24,7 @@ function __git_recent_branches()
       fi
 
       # All checks passed.  Add it.
-      reply+=( "$new_head"$'\0'"$commit_subject" )
+      reply+=( $new_head )
     done
 }
 
@@ -39,9 +39,12 @@ _git-rb() {
     __git_recent_branches \
     ; for branch in $reply
     do
-        description=${branch#*$'\0'}
-        branch=${branch%$'\0'*}
-        # TODO: why this check?  Is it belt-and-suspenders?  I not, can $description be empty?
+        # ### We'd want to convert all $reply to $descriptions in one shot, with this:
+        # ###     array=("${(ps:\0:)"$(_call_program descriptions git --no-pager log --no-walk=unsorted -z --pretty=%s ${(q)reply} --)"}")
+        # ### , but git croaks if any of the positional arguments is a ref name that has been deleted.
+        # ### Hence, we resort to fetching the descriptions one-by-one.  Let's hope the user is well-stocked on cutlery.
+        description="$(_call_program description git --no-pager log --no-walk=unsorted --pretty=%s ${(q)branch} --)"
+        # If the ref has been deleted, $description would be empty.
         if [[ -n "$description" ]]; then
           branches+=$branch
           descriptions+="${branch}:${description/:/\:}"
