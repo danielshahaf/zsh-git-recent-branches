@@ -1,4 +1,6 @@
-function __git_recent_branches()
+# This function returns in $reply recently-checked-out refs' names, in order
+# from most to least recent.
+function __git_recent_branches__names()
 {
     local -a reflog
     local reflog_subject
@@ -28,7 +30,7 @@ function __git_recent_branches()
     done
 }
 
-_git-rb() {
+__git_recent_branches2() {
     local -a branches descriptions
     local branch description
     local -i current
@@ -37,7 +39,7 @@ _git-rb() {
 
     zstyle -s ":completion:${curcontext}:recent-branches" 'limit' branch_limit || branch_limit=100
     current=0
-    __git_recent_branches \
+    __git_recent_branches__names \
     ; for branch in $reply
     do
         # ### We'd want to convert all $reply to $descriptions in one shot, with this:
@@ -58,7 +60,7 @@ _git-rb() {
 
     _describe -V -t recent-branches "recent branches" descriptions branches
 }
-compdef _git-rb git-rb
+compdef __git_recent_branches2 git-rb
 
 # If you define an alias in ~/.gitconfig for    rb = checkout  then you can test
 # using  git rb BRANCH<enter> and it should checkout the appropriate branch
