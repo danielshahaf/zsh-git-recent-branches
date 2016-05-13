@@ -12,11 +12,13 @@ function __git_recent_branches__names()
     for reflog_subject in $reflog; do
       new_head=${${=reflog_subject}[4]}
 
+      # Skip values added in previous iterations.
       if (( ${+seen[$new_head]} )); then
         continue
       fi
       seen[$new_head]="" # value is ignored
 
+      # Filter out hashes, to leave only ref names.
       if [[ $new_head =~ '^[0-9a-f]{40}$' ]]; then
         continue
       fi
