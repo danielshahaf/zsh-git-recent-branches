@@ -33,6 +33,7 @@ _git-rb() {
     local branch description
     local -i current
     integer branch_limit
+    local -a reply
 
     zstyle -s ":completion:${curcontext}:recent-branches" 'limit' branch_limit || branch_limit=100
     current=0
